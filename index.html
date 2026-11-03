@@ -1,0 +1,802 @@
+<title>Diffusion : du bruit a l'image</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500&display=swap">
+<style>
+/* ── Tokens ── */
+:root {
+  --bg: #FAFAF7; --bg-alt: #F0EEEA; --bg-card: #FFFFFF;
+  --fg: #2A2A2E; --fg-dim: #6B6B72; --fg-muted: #9E9EA3;
+  --accent: #4338CA; --accent-light: #EEF0FF;
+  --coral: #E8553A; --coral-bg: #FEF0EC;
+  --teal: #0D9474; --teal-bg: #ECFAF5;
+  --purple: #7C5CFC; --purple-bg: #F3F0FF;
+  --amber: #C47F17; --amber-bg: #FEF6E6;
+  --border: #E2E0DA; --border-strong: #CCC9C0;
+  --radius: 10px; --radius-lg: 16px;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'Source Code Pro', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18181E; --bg-alt: #222228; --bg-card: #26262D;
+    --fg: #E8E6E0; --fg-dim: #A5A5AB; --fg-muted: #6E6E76;
+    --accent: #8B83F0; --accent-light: #2A274A;
+    --coral: #F0765E; --coral-bg: #3A2220;
+    --teal: #3CC9A4; --teal-bg: #1A312B;
+    --purple: #A08CFF; --purple-bg: #2A2540;
+    --amber: #E8A83E; --amber-bg: #332A18;
+    --border: #35353D; --border-strong: #48484F;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18181E; --bg-alt: #222228; --bg-card: #26262D;
+  --fg: #E8E6E0; --fg-dim: #A5A5AB; --fg-muted: #6E6E76;
+  --accent: #8B83F0; --accent-light: #2A274A;
+  --coral: #F0765E; --coral-bg: #3A2220;
+  --teal: #3CC9A4; --teal-bg: #1A312B;
+  --purple: #A08CFF; --purple-bg: #2A2540;
+  --amber: #E8A83E; --amber-bg: #332A18;
+  --border: #35353D; --border-strong: #48484F;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.72;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ── Typography ── */
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; line-height: 1.2; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0 0 0.5em; }
+h2 { font-size: clamp(1.5rem, 3.5vw, 2rem); margin: 3rem 0 1rem; }
+h3 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
+.eyebrow { font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.5rem; }
+code, .mono { font-family: var(--font-mono); font-size: 0.9em; }
+.formula { font-family: var(--font-mono); font-size: 0.85rem; background: var(--bg-alt); padding: 12px 16px; border-radius: var(--radius); display: block; overflow-x: auto; line-height: 1.8; margin: 1rem 0; color: var(--fg); }
+
+/* ── Layout ── */
+.wrap { max-width: 800px; margin: 0 auto; }
+section { padding: 2rem 0; }
+section + section { border-top: 1px solid var(--border); }
+
+/* ── Navigation ── */
+nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); border-bottom: 1px solid var(--border); margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 0 max(16px, env(safe-area-inset-left, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+.nav-inner { max-width: 800px; margin: 0 auto; display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; }
+.nav-inner::-webkit-scrollbar { display: none; }
+.nav-inner a { display: block; padding: 10px 14px; font-size: 0.8rem; font-weight: 500; color: var(--fg-dim); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+.nav-inner a:hover, .nav-inner a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Cards ── */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin: 1.5rem 0; }
+.card-accent { border-left: 3px solid var(--accent); border-radius: 0; }
+.card-coral { background: var(--coral-bg); border-color: transparent; }
+.card-teal { background: var(--teal-bg); border-color: transparent; }
+.card-purple { background: var(--purple-bg); border-color: transparent; }
+
+/* ── Tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 1rem 0; }
+.data-table th { text-align: left; font-weight: 500; color: var(--fg-dim); padding: 8px 10px; border-bottom: 2px solid var(--border-strong); font-size: 0.75rem; letter-spacing: 0.03em; }
+.data-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.data-table .mono { font-size: 0.82rem; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table .dim { color: var(--fg-muted); }
+
+/* ── Controls ── */
+.controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+.controls label { font-size: 0.82rem; color: var(--fg-dim); min-width: 80px; }
+.controls input[type="range"] { flex: 1; min-width: 120px; accent-color: var(--accent); }
+.controls output { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 500; min-width: 60px; text-align: right; color: var(--fg); }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-card); color: var(--fg); font-family: var(--font-body); font-size: 0.82rem; font-weight: 500; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.btn:hover { background: var(--bg-alt); }
+.btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-accent:hover { opacity: 0.9; background: var(--accent); }
+
+/* ── Canvas ── */
+canvas { display: block; width: 100%; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-card); }
+
+/* ── Legend ── */
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: var(--fg-dim); margin: 8px 0; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; vertical-align: -1px; margin-right: 4px; }
+
+/* ── Step indicator ── */
+.step-pills { display: flex; gap: 4px; margin: 1rem 0; flex-wrap: wrap; }
+.step-pill { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 500; color: var(--fg-muted); background: var(--bg); cursor: pointer; transition: all 0.15s; }
+.step-pill.done { background: var(--accent); color: #fff; border-color: var(--accent); }
+.step-pill.current { background: var(--accent-light); color: var(--accent); border-color: var(--accent); font-weight: 700; }
+
+/* ── Calc table ── */
+.calc-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.calc-table td { padding: 6px 8px; vertical-align: top; }
+.calc-table td:first-child { color: var(--fg-dim); width: 38%; }
+.calc-table td:nth-child(2) { font-family: var(--font-mono); font-size: 0.8rem; color: var(--fg); }
+.calc-table td:nth-child(3) { color: var(--fg-muted); font-size: 0.78rem; }
+.calc-table tr { border-bottom: 1px solid var(--border); }
+.calc-table tr:last-child { border-bottom: none; }
+.calc-section { font-weight: 500; color: var(--fg); padding-top: 12px !important; font-size: 0.85rem; }
+
+/* ── Misc ── */
+.tag { display: inline-block; padding: 2px 10px; border-radius: 100px; font-size: 0.72rem; font-weight: 500; }
+.tag-coral { background: var(--coral-bg); color: var(--coral); }
+.tag-teal { background: var(--teal-bg); color: var(--teal); }
+.tag-purple { background: var(--purple-bg); color: var(--purple); }
+.columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 600px) { .columns { grid-template-columns: 1fr; } }
+.fade { color: var(--fg-muted); }
+.hero-sub { font-size: 1.1rem; color: var(--fg-dim); max-width: 560px; line-height: 1.6; }
+.spacer { height: 1rem; }
+</style>
+
+<nav><div class="nav-inner">
+<a href="#intro">Intro</a>
+<a href="#dataset">Swiss Roll</a>
+<a href="#noising">Noising</a>
+<a href="#schedule">Schedule</a>
+<a href="#denoising">Denoising</a>
+<a href="#single">Un point</a>
+<a href="#training">Entrainement</a>
+<a href="#summary">Resume</a>
+</div></nav>
+
+<div class="wrap">
+
+<!-- ═══════ INTRO ═══════ -->
+<section id="intro">
+<p class="eyebrow">Les modeles de diffusion</p>
+<h1>Du bruit pur a une image, pas a pas</h1>
+<p class="hero-sub">Ce guide interactif decompose le processus complet de diffusion sur le Swiss Roll, un dataset 2D qui permet de tout visualiser : le noising, le denoising, chaque calcul intermediaire, et l'entrainement.</p>
+<div class="columns" style="margin-top:2rem">
+<div class="card card-coral">
+<p class="eyebrow" style="color:var(--coral)">Phase 1 : Forward</p>
+<h3 style="margin-top:0">Le noising</h3>
+<p style="font-size:0.9rem;color:var(--fg-dim)">On melange progressivement une image propre avec du bruit gaussien, jusqu'a obtenir du bruit pur. C'est la supervision gratuite.</p>
+</div>
+<div class="card card-teal">
+<p class="eyebrow" style="color:var(--teal)">Phase 2 : Reverse</p>
+<h3 style="margin-top:0">Le denoising</h3>
+<p style="font-size:0.9rem;color:var(--fg-dim)">On part de bruit pur et on retire le bruit petit a petit, en 40 a 1000 pas, jusqu'a obtenir une image. C'est la generation.</p>
+</div>
+</div>
+</section>
+
+<!-- ═══════ DATASET ═══════ -->
+<section id="dataset">
+<p class="eyebrow">Le dataset</p>
+<h2>Le Swiss Roll</h2>
+<p>Le Swiss Roll est une spirale 2D. C'est le dataset jouet classique pour comprendre la diffusion, parce qu'on peut tout visualiser sur un ecran plat. Dans un vrai modele (Stable Diffusion, DALL-E), les points vivent en 512 dimensions au lieu de 2, mais le mecanisme est exactement le meme.</p>
+<canvas id="cvDataset" width="1360" height="700"></canvas>
+<div class="legend">
+<span><span class="legend-dot" style="background:var(--accent)"></span> 200 points du swiss roll, colores par position sur la spirale</span>
+</div>
+<p style="font-size:0.9rem;color:var(--fg-dim)">Chaque point a 2 coordonnees (x, y). La couleur suit l'angle theta sur la spirale : les points proches sur la spirale ont des couleurs proches. Les donnees sont normalisees (moyenne = 0, variance ≈ 1).</p>
+</section>
+
+<!-- ═══════ NOISING ═══════ -->
+<section id="noising">
+<p class="eyebrow">Phase 1 : Forward</p>
+<h2>Le noising</h2>
+<p>Le noising melange l'image propre x₀ avec un bruit ε tire au hasard. Le melange est controle par un seul parametre : le niveau de bruit t.</p>
+
+<div class="card card-accent">
+<p style="margin:0;font-size:0.9rem"><strong>Formule du noising :</strong></p>
+<code class="formula">x_t = √ᾱ_t × x₀ + √(1 - ᾱ_t) × ε      ou ε ~ N(0, I)</code>
+</div>
+
+<div class="columns" style="margin:1.5rem 0">
+<div>
+<table class="data-table">
+<tr><th>Composant</th><th>Role</th><th>Poids</th></tr>
+<tr><td>x₀</td><td>Image propre</td><td class="mono">√ᾱ_t</td></tr>
+<tr><td>ε</td><td>Bruit gaussien</td><td class="mono">√(1 - ᾱ_t)</td></tr>
+<tr><td>x_t</td><td>Melange</td><td class="mono">somme</td></tr>
+</table>
+</div>
+<div>
+<p style="font-size:0.9rem;color:var(--fg-dim)">Quand t augmente, √ᾱ_t baisse (moins de signal) et √(1 - ᾱ_t) monte (plus de bruit). A t = 0 on a l'image propre, a t = T on a du bruit pur.</p>
+</div>
+</div>
+
+<h3>Visualisation interactive</h3>
+<p>Deplace le curseur pour voir le Swiss Roll se noyer progressivement dans le bruit :</p>
+<canvas id="cvNoise" width="1360" height="700"></canvas>
+<div class="controls">
+<label>Niveau t</label>
+<input type="range" id="slNoise" min="0" max="50" value="0" step="1">
+<output id="outNoise">t = 0</output>
+</div>
+<div class="controls">
+<label></label>
+<output id="outNoiseDetail" style="flex:1;min-width:auto;text-align:left;font-size:0.82rem;color:var(--fg-dim)"></output>
+</div>
+<div class="legend">
+<span><span class="legend-dot" style="background:var(--accent)"></span> Donnees bruitees x_t</span>
+<span><span class="legend-dot" style="background:var(--fg-muted);opacity:0.3"></span> Donnees propres x₀ (reference)</span>
+</div>
+
+<h3>Ce qu'il faut observer</h3>
+<table class="data-table">
+<tr><th>t</th><th>√ᾱ_t</th><th>√(1-ᾱ_t)</th><th>Ce qu'on voit</th></tr>
+<tr><td class="mono">0</td><td class="mono">1.00</td><td class="mono">0.00</td><td>Spirale parfaite</td></tr>
+<tr><td class="mono">10</td><td class="mono" id="sched10s">—</td><td class="mono" id="sched10n">—</td><td>Leger grain, forme intacte</td></tr>
+<tr><td class="mono">20</td><td class="mono" id="sched20s">—</td><td class="mono" id="sched20n">—</td><td>Forme visible mais floue</td></tr>
+<tr><td class="mono">30</td><td class="mono" id="sched30s">—</td><td class="mono" id="sched30n">—</td><td>A peine devinable</td></tr>
+<tr><td class="mono">40</td><td class="mono" id="sched40s">—</td><td class="mono" id="sched40n">—</td><td>Quasi bruit pur</td></tr>
+<tr><td class="mono">50</td><td class="mono" id="sched50s">—</td><td class="mono" id="sched50n">—</td><td>Bruit pur</td></tr>
+</table>
+</section>
+
+<!-- ═══════ SCHEDULE ═══════ -->
+<section id="schedule">
+<p class="eyebrow">Les parametres</p>
+<h2>Le schedule de bruit</h2>
+<p>Le schedule definit combien de bruit on ajoute a chaque pas. Ici on utilise un schedule lineaire :</p>
+<div class="card card-accent">
+<code class="formula">β_t = 0.001 + 0.099 × (t - 1) / (T - 1)       pour t = 1 a T = 50
+α_t = 1 - β_t
+ᾱ_t = α₁ × α₂ × ... × α_t                     (produit cumule)</code>
+</div>
+<canvas id="cvSchedule" width="1360" height="500"></canvas>
+<div class="legend">
+<span><span class="legend-dot" style="background:var(--teal)"></span> √ᾱ_t (poids du signal)</span>
+<span><span class="legend-dot" style="background:var(--coral)"></span> √(1 - ᾱ_t) (poids du bruit)</span>
+<span><span class="legend-dot" style="background:var(--fg-muted)"></span> β_t (dose par pas)</span>
+</div>
+<p style="font-size:0.9rem;color:var(--fg-dim)">Le signal (teal) decroit doucement puis s'effondre. Le bruit (corail) monte en miroir. La dose par pas β_t (gris) est toujours petite : on n'ajoute jamais beaucoup de bruit d'un coup.</p>
+</section>
+
+<!-- ═══════ DENOISING ═══════ -->
+<section id="denoising">
+<p class="eyebrow">Phase 2 : Reverse</p>
+<h2>Le denoising</h2>
+<p>Le denoising parcourt le chemin inverse : de t = T (bruit pur) a t = 0 (image propre). A chaque pas, un reseau predit le bruit, et on en retire une petite dose.</p>
+
+<h3>Les 4 calculs d'un pas</h3>
+<p>Pour passer de x_t a x_{t-1}, on fait exactement ces 4 operations :</p>
+<div class="card">
+<table class="calc-table">
+<tr><td class="calc-section" colspan="3">Le reseau predit le bruit</td></tr>
+<tr><td>Estimation x̂₀</td><td>E[x₀ | x_t]</td><td>Moyenne ponderee de toutes les donnees possibles</td></tr>
+<tr><td>Bruit predit ε̂</td><td>(x_t - √ᾱ × x̂₀) / √(1-ᾱ)</td><td>Deduit de x̂₀ en inversant le noising</td></tr>
+<tr><td class="calc-section" colspan="3">On applique le pas DDPM</td></tr>
+<tr><td>1. Dose a retirer</td><td>c = β_t / √(1 - ᾱ_t)</td><td>Toujours un petit nombre</td></tr>
+<tr><td>2. Retirer le bruit</td><td>r = x_t - c × ε̂</td><td>Le vrai debruitage</td></tr>
+<tr><td>3. Regonfler</td><td>m = r / √α_t</td><td>Compense le retrecissement du noising</td></tr>
+<tr><td>4. Bruit frais</td><td>x_{t-1} = m + σ_t × z</td><td>σ = √β_t, z tire au hasard, omis au dernier pas</td></tr>
+</table>
+</div>
+
+<h3>100 points, du bruit pur a la spirale</h3>
+<p>Chaque point part du bruit pur et converge vers le Swiss Roll en 50 pas. 8 trajectoires colorees montrent le chemin suivi :</p>
+<canvas id="cvDenoise" width="1360" height="900"></canvas>
+<div class="controls">
+<button class="btn btn-accent" id="dnPlay">Lecture</button>
+<button class="btn" id="dnStep">Pas suivant</button>
+<button class="btn" id="dnReset">Nouveau bruit</button>
+<output id="dnLab" style="margin-left:auto"></output>
+</div>
+<div class="controls">
+<label>Pas</label>
+<input type="range" id="dnSlider" min="0" max="50" value="0" step="1">
+</div>
+<div id="dnDesc" style="font-size:0.85rem;color:var(--fg-dim);min-height:20px;margin:4px 0"></div>
+<div class="legend">
+<span><span class="legend-dot" style="background:var(--fg-muted);opacity:0.3"></span> Swiss roll (taille = poids)</span>
+<span><span class="legend-dot" style="background:var(--accent);opacity:0.6"></span> Points en denoising</span>
+<span><span class="legend-dot" style="background:#7C5CFC"></span> 8 trajectoires suivies</span>
+</div>
+
+<h3 style="margin-top:2.5rem">Pourquoi le bruit frais (calcul 4) ?</h3>
+<div class="columns">
+<div class="card card-coral">
+<p style="font-size:0.85rem;margin:0"><strong>Sans bruit frais</strong><br>Toutes les trajectoires convergent vers le meme point : la moyenne floue. Pas de diversite, image molle.</p>
+</div>
+<div class="card card-teal">
+<p style="font-size:0.85rem;margin:0"><strong>Avec bruit frais</strong><br>Chaque trajectoire arrive a un endroit different : le bruit frais maintient la diversite. C'est ce qui permet de generer des images variees.</p>
+</div>
+</div>
+</section>
+
+<!-- ═══════ SINGLE POINT ═══════ -->
+<section id="single">
+<p class="eyebrow">En detail</p>
+<h2>Un seul point, tous les calculs</h2>
+<p>On suit un seul point a travers les 50 pas de denoising. A chaque pas, tous les calculs intermediaires sont affiches. La taille des points gris montre les poids w_i (quelles donnees le debruiteur considere comme origines probables).</p>
+
+<canvas id="cvSingle" width="1360" height="900"></canvas>
+<div class="controls">
+<button class="btn btn-accent" id="spPlay">Lecture</button>
+<button class="btn" id="spStep">Pas suivant</button>
+<button class="btn" id="spBack">Precedent</button>
+<button class="btn" id="spReset">Nouveau bruit</button>
+<output id="spLab" style="margin-left:auto"></output>
+</div>
+<div class="controls">
+<label>Pas</label>
+<input type="range" id="spSlider" min="0" max="50" value="0" step="1">
+</div>
+<div class="legend">
+<span><span class="legend-dot" style="background:var(--fg-muted)"></span> Donnees (taille = poids w_i)</span>
+<span><span class="legend-dot" style="background:var(--coral)"></span> Point suivi x_t</span>
+<span><span class="legend-dot" style="background:var(--teal)"></span> Estimation x̂₀</span>
+<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:3px;background:var(--purple);border-radius:2px;display:inline-block"></span> Trajectoire</span>
+</div>
+
+<div id="spCalc" class="card" style="margin-top:1rem;overflow-x:auto"></div>
+</section>
+
+<!-- ═══════ TRAINING ═══════ -->
+<section id="training">
+<p class="eyebrow">Boucler la boucle</p>
+<h2>L'entrainement</h2>
+<p>Pendant la generation, le reseau est deja entraine. Mais comment a-t-il appris ? Voici une iteration d'entrainement :</p>
+<div class="card">
+<table class="data-table">
+<tr><th style="width:40px">#</th><th>Action</th><th>Formule / detail</th></tr>
+<tr><td class="mono">1</td><td>Prendre une image du dataset</td><td class="dim">x₀</td></tr>
+<tr><td class="mono">2</td><td>Tirer un t au hasard</td><td class="dim">t entre 1 et T</td></tr>
+<tr><td class="mono">3</td><td>Tirer un bruit ε au hasard</td><td class="dim">ε ~ N(0, I)</td></tr>
+<tr><td class="mono">4</td><td>Fabriquer x_t</td><td class="mono">x_t = √ᾱ_t × x₀ + √(1-ᾱ_t) × ε</td></tr>
+<tr><td class="mono">5</td><td>Le reseau predit le bruit</td><td class="mono">ε̂ = reseau(x_t, t)</td></tr>
+<tr><td class="mono">6</td><td>Calculer l'erreur</td><td class="mono">perte = (ε - ε̂)²</td></tr>
+<tr><td class="mono">7</td><td>Corriger les poids</td><td class="dim">Descente de gradient</td></tr>
+</table>
+</div>
+<p style="font-size:0.9rem">L'astuce geniale : a l'etape 6, on connait le vrai ε puisque c'est nous qui l'avons tire a l'etape 3. La supervision est gratuite. On repete ca des millions de fois avec des images differentes, des t differents et des bruits differents.</p>
+
+<h3>Dans notre demo</h3>
+<p style="font-size:0.9rem;color:var(--fg-dim)">Notre "reseau" est un debruiteur ideal : il connait les 200 points du swiss roll et calcule exactement E[x₀ | x_t] = la moyenne ponderee de tous les points, ponderee par leur compatibilite avec x_t. Dans un vrai modele, un reseau de neurones (U-Net ou Transformer) approxime ce calcul.</p>
+
+<h3>Ce qui change dans un vrai modele</h3>
+<div class="columns">
+<div class="card">
+<p class="tag tag-coral" style="margin-bottom:8px">Conditionnement</p>
+<p style="font-size:0.85rem;margin:0">Le reseau recoit aussi un prompt texte : ε̂ = reseau(x_t, t, prompt). Avec le classifier-free guidance, on exagere l'ecart entre prediction avec et sans texte.</p>
+</div>
+<div class="card">
+<p class="tag tag-teal" style="margin-bottom:8px">Espace latent</p>
+<p style="font-size:0.85rem;margin:0">Stable Diffusion travaille dans un espace compresse (64 × 64 au lieu de 512 × 512). Un encodeur compresse, le denoising agit, un decodeur reconstruit les pixels.</p>
+</div>
+<div class="card">
+<p class="tag tag-purple" style="margin-bottom:8px">Samplers rapides</p>
+<p style="font-size:0.85rem;margin:0">DDIM, DPM-Solver, etc. utilisent la meme prediction ε̂ mais font des pas plus grands, souvent deterministes. 20-50 pas au lieu de 1000.</p>
+</div>
+<div class="card">
+<p class="tag tag-coral" style="margin-bottom:8px">Cible alternative</p>
+<p style="font-size:0.85rem;margin:0">Certains modeles predisent x₀ ou "v" au lieu de ε. Ce sont des reparametrisations equivalentes — les formules changent mais le principe reste le meme.</p>
+</div>
+</div>
+</section>
+
+<!-- ═══════ SUMMARY ═══════ -->
+<section id="summary" style="padding-bottom:4rem">
+<p class="eyebrow">Tout en un</p>
+<h2>Resume complet</h2>
+
+<h3>Le noising (forward)</h3>
+<div class="card card-coral">
+<code class="formula" style="background:transparent;padding:0">x_t = √ᾱ_t × x₀ + √(1 - ᾱ_t) × ε</code>
+<p style="font-size:0.85rem;margin:0.5rem 0 0;color:var(--fg-dim)">On melange le signal et le bruit. A t = T, il ne reste que du bruit.</p>
+</div>
+
+<h3>Un pas de denoising (reverse)</h3>
+<div class="card card-teal">
+<table class="calc-table">
+<tr><td>1. Dose</td><td>c = β_t / √(1 - ᾱ_t)</td><td></td></tr>
+<tr><td>2. Retrait</td><td>r = x_t - c × ε̂</td><td></td></tr>
+<tr><td>3. Regonflage</td><td>m = r / √α_t</td><td></td></tr>
+<tr><td>4. Bruit frais</td><td>x_{t-1} = m + σ_t × z</td><td>σ = √β_t, z ~ N(0,I)</td></tr>
+</table>
+</div>
+
+<h3>L'entrainement</h3>
+<div class="card card-purple">
+<p style="font-size:0.85rem;margin:0">Tirer x₀, t, ε → fabriquer x_t → le reseau predit ε̂ → minimiser (ε - ε̂)². La supervision est gratuite car on connait le vrai ε.</p>
+</div>
+
+<h3>La generation</h3>
+<div class="card">
+<p style="font-size:0.85rem;margin:0">Tirer x_T ~ N(0, I) → repeter de T a 1 : le reseau predit ε̂, appliquer les 4 calculs → x₀ est l'image generee.</p>
+</div>
+</section>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   DIFFUSION EXPLAINER — Swiss Roll
+   ══════════════════════════════════════════════ */
+
+// ── Dark mode detection ──
+var dm = (function() {
+  var d = document.documentElement.dataset.theme;
+  if (d === 'dark') return true;
+  if (d === 'light') return false;
+  return matchMedia('(prefers-color-scheme:dark)').matches;
+})();
+var cs = getComputedStyle(document.documentElement);
+
+// ── Math utilities ──
+function randn() { var u = 0; while (!u) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); }
+function f(v) { return v.toFixed(3); }
+function f2(v) { return v.toFixed(2); }
+
+// ── Swiss Roll data ──
+var ND = 200, T = 50;
+var data = [], dth = [];
+for (var i = 0; i < ND; i++) {
+  var th = 1.5 * Math.PI + 3 * Math.PI * (i / (ND - 1) + 0.015 * randn());
+  data.push([th * Math.cos(th) + randn() * 0.4, th * Math.sin(th) + randn() * 0.4]);
+  dth.push(th);
+}
+// Normalize
+var mx = 0, my = 0;
+for (i = 0; i < ND; i++) { mx += data[i][0]; my += data[i][1]; }
+mx /= ND; my /= ND;
+var vr = 0;
+for (i = 0; i < ND; i++) { var dx = data[i][0] - mx, dy = data[i][1] - my; vr += dx * dx + dy * dy; }
+vr /= ND; var sd = Math.sqrt(vr / 2);
+for (i = 0; i < ND; i++) { data[i][0] = (data[i][0] - mx) / sd; data[i][1] = (data[i][1] - my) / sd; }
+
+// ── Schedule ──
+var betas = [0], ab = [1];
+for (var t = 1; t <= T; t++) { betas.push(0.001 + 0.099 * (t - 1) / (T - 1)); ab.push(ab[t - 1] * (1 - betas[t])); }
+
+// Fill schedule table
+[10,20,30,40,50].forEach(function(t) {
+  var s = document.getElementById('sched' + t + 's');
+  var n = document.getElementById('sched' + t + 'n');
+  if (s) s.textContent = f2(Math.sqrt(ab[t]));
+  if (n) n.textContent = f2(Math.sqrt(1 - ab[t]));
+});
+
+// ── Noise for noising visualization ──
+var noiseVec = [];
+for (i = 0; i < ND; i++) noiseVec.push([randn(), randn()]);
+
+// ── Color helpers ──
+var thMin = Math.min.apply(null, dth), thMax = Math.max.apply(null, dth);
+function hueForTh(th) { return 220 + (th - thMin) / (thMax - thMin) * 140; }
+function dotColor(th, alpha) {
+  var h = hueForTh(th);
+  return 'hsla(' + Math.round(h) + ',65%,' + (dm ? '65%' : '45%') + ',' + (alpha || 1) + ')';
+}
+var HC = ['#7C5CFC','#0D9474','#E8553A','#D4537E','#378ADD','#639922','#EF9F27','#E24B4A'];
+var muted = dm ? 'rgba(180,178,169,' : 'rgba(95,94,90,';
+var accentA = dm ? 'rgba(139,131,240,' : 'rgba(67,56,202,';
+
+// ── Canvas helpers ──
+function getCtx(id) {
+  var cv = document.getElementById(id);
+  return { cv: cv, ctx: cv.getContext('2d'), W: cv.width, H: cv.height };
+}
+function txf(v, cx, sc) { return cx + v * sc; }
+function tyf(v, cy, sc) { return cy - v * sc; }
+
+// ══════════════════════════════════
+// SECTION: Dataset
+// ══════════════════════════════════
+(function() {
+  var c = getCtx('cvDataset'), W = c.W, H = c.H, ctx = c.ctx;
+  var CX = W/2, CY = H/2, SC = W/7;
+  ctx.clearRect(0,0,W,H);
+  for (var i = 0; i < ND; i++) {
+    ctx.beginPath();
+    ctx.arc(txf(data[i][0],CX,SC), tyf(data[i][1],CY,SC), 6, 0, 6.3);
+    ctx.fillStyle = dotColor(dth[i], 0.85);
+    ctx.fill();
+  }
+})();
+
+// ══════════════════════════════════
+// SECTION: Noising
+// ══════════════════════════════════
+(function() {
+  var c = getCtx('cvNoise'), W = c.W, H = c.H, ctx = c.ctx;
+  var CX = W/2, CY = H/2, SC = W/7;
+  var sl = document.getElementById('slNoise');
+  var out = document.getElementById('outNoise');
+  var outD = document.getElementById('outNoiseDetail');
+
+  function draw() {
+    var t = +sl.value;
+    var sa = Math.sqrt(ab[t]), sn = Math.sqrt(1 - ab[t]);
+    ctx.clearRect(0,0,W,H);
+    // Ghost of clean data
+    for (var i = 0; i < ND; i++) {
+      ctx.beginPath();
+      ctx.arc(txf(data[i][0],CX,SC), tyf(data[i][1],CY,SC), 4, 0, 6.3);
+      ctx.fillStyle = muted + '0.15)';
+      ctx.fill();
+    }
+    // Noised data
+    for (i = 0; i < ND; i++) {
+      var nx = sa * data[i][0] + sn * noiseVec[i][0];
+      var ny = sa * data[i][1] + sn * noiseVec[i][1];
+      ctx.beginPath();
+      ctx.arc(txf(nx,CX,SC), tyf(ny,CY,SC), 5, 0, 6.3);
+      ctx.fillStyle = dotColor(dth[i], 0.8);
+      ctx.fill();
+    }
+    out.textContent = 't = ' + t;
+    outD.textContent = 'signal √ᾱ = ' + f2(sa) + '   bruit √(1-ᾱ) = ' + f2(sn);
+  }
+  sl.addEventListener('input', draw);
+  draw();
+})();
+
+// ══════════════════════════════════
+// SECTION: Schedule chart
+// ══════════════════════════════════
+(function() {
+  var c = getCtx('cvSchedule'), W = c.W, H = c.H, ctx = c.ctx;
+  var PAD = 80, PB = 60, PT = 40;
+  var gw = W - 2*PAD, gh = H - PT - PB;
+
+  function xp(t) { return PAD + t/T * gw; }
+  function yp(v) { return PT + (1-v) * gh; }
+
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = dm ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  ctx.lineWidth = 1;
+  for (var v = 0; v <= 1; v += 0.25) {
+    ctx.beginPath(); ctx.moveTo(PAD, yp(v)); ctx.lineTo(W-PAD, yp(v)); ctx.stroke();
+    ctx.fillStyle = dm ? '#6E6E76' : '#9E9EA3'; ctx.font = '22px "Source Code Pro"'; ctx.textAlign = 'right';
+    ctx.fillText(v.toFixed(2), PAD - 10, yp(v) + 7);
+  }
+  // X axis labels
+  ctx.textAlign = 'center';
+  for (t = 0; t <= T; t += 10) {
+    ctx.fillStyle = dm ? '#6E6E76' : '#9E9EA3'; ctx.fillText(t, xp(t), H - PB + 30);
+  }
+  ctx.font = '24px "DM Sans"';
+  ctx.fillText('t', W/2, H - 8);
+
+  // √ᾱ curve (teal)
+  ctx.beginPath();
+  for (t = 0; t <= T; t++) { var y = Math.sqrt(ab[t]); if (t===0) ctx.moveTo(xp(t),yp(y)); else ctx.lineTo(xp(t),yp(y)); }
+  ctx.strokeStyle = dm ? '#3CC9A4' : '#0D9474'; ctx.lineWidth = 3; ctx.stroke();
+
+  // √(1-ᾱ) curve (coral)
+  ctx.beginPath();
+  for (t = 0; t <= T; t++) { var y = Math.sqrt(1-ab[t]); if (t===0) ctx.moveTo(xp(t),yp(y)); else ctx.lineTo(xp(t),yp(y)); }
+  ctx.strokeStyle = dm ? '#F0765E' : '#E8553A'; ctx.lineWidth = 3; ctx.stroke();
+
+  // β curve (gray, scaled ×5 so it's visible)
+  ctx.beginPath();
+  for (t = 1; t <= T; t++) { var y = betas[t]*5; if (t===1) ctx.moveTo(xp(t),yp(y)); else ctx.lineTo(xp(t),yp(y)); }
+  ctx.strokeStyle = dm ? '#6E6E76' : '#9E9EA3'; ctx.lineWidth = 2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+})();
+
+// ══════════════════════════════════
+// SECTION: Denoising (100 points)
+// ══════════════════════════════════
+var dnMod = (function() {
+  var c = getCtx('cvDenoise'), W = c.W, H = c.H, ctx = c.ctx;
+  var CX = W/2, CY = H/2, SC = W/7;
+  var NS = 100, NH = 8;
+  var traj, hi, step = 0, timer = null;
+
+  function computeTraj() {
+    traj = []; var pts = [];
+    for (var i = 0; i < NS; i++) { var p = [randn()*1.3, randn()*1.3]; pts.push(p); traj.push([[p[0],p[1]]]); }
+    hi = []; for (i = 0; i < NH; i++) hi.push(Math.round(i * NS / NH));
+    for (var t = T; t >= 1; t--) {
+      var abar = ab[t], sa = Math.sqrt(abar), sn = Math.sqrt(1-abar), va = 1-abar;
+      var al = 1-betas[t], sal = Math.sqrt(al), sig = t>1?Math.sqrt(betas[t]):0, cc = betas[t]/sn;
+      for (i = 0; i < NS; i++) {
+        var xt = pts[i], lw = new Float64Array(ND);
+        for (var j = 0; j < ND; j++) { var ex = xt[0]-sa*data[j][0], ey = xt[1]-sa*data[j][1]; lw[j] = -(ex*ex+ey*ey)/(2*va); }
+        var mxw = -1e30; for (j = 0; j < ND; j++) if (lw[j]>mxw) mxw = lw[j];
+        var sw = 0, w = new Float64Array(ND); for (j = 0; j < ND; j++) { w[j] = Math.exp(lw[j]-mxw); sw += w[j]; }
+        var m0 = 0, m1 = 0; for (j = 0; j < ND; j++) { m0 += w[j]*data[j][0]; m1 += w[j]*data[j][1]; } m0 /= sw; m1 /= sw;
+        var eh0 = (xt[0]-sa*m0)/sn, eh1 = (xt[1]-sa*m1)/sn;
+        pts[i] = [(xt[0]-cc*eh0)/sal+sig*randn(), (xt[1]-cc*eh1)/sal+sig*randn()];
+        traj[i].push([pts[i][0], pts[i][1]]);
+      }
+    }
+  }
+  computeTraj();
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    // Data points (sized by weight if we had it, just small here)
+    for (var i = 0; i < ND; i++) { ctx.beginPath(); ctx.arc(txf(data[i][0],CX,SC),tyf(data[i][1],CY,SC),3.5,0,6.3); ctx.fillStyle = muted+'0.18)'; ctx.fill(); }
+    // Trajectories
+    for (var h = 0; h < NH; h++) {
+      var idx = hi[h]; ctx.beginPath();
+      for (var s = 0; s <= step; s++) { var pt = traj[idx][s]; if (s===0) ctx.moveTo(txf(pt[0],CX,SC),tyf(pt[1],CY,SC)); else ctx.lineTo(txf(pt[0],CX,SC),tyf(pt[1],CY,SC)); }
+      ctx.strokeStyle = HC[h]; ctx.lineWidth = 2; ctx.globalAlpha = 0.45; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    // Sample points
+    for (i = 0; i < NS; i++) {
+      var pt = traj[i][step]; var isH = hi.indexOf(i);
+      ctx.beginPath(); ctx.arc(txf(pt[0],CX,SC),tyf(pt[1],CY,SC),isH>=0?7:4,0,6.3);
+      ctx.fillStyle = isH >= 0 ? HC[isH] : accentA + '0.6)'; ctx.fill();
+    }
+    document.getElementById('dnLab').textContent = 't = ' + (T-step) + ' / ' + T;
+    document.getElementById('dnSlider').value = step;
+    var r = T - step;
+    var d = r > 40 ? 'Bruit quasi pur — le debruiteur hesite entre toutes les positions'
+      : r > 30 ? 'Les points se regroupent vers le centre de la spirale'
+      : r > 20 ? 'La forme de la spirale emerge clairement'
+      : r > 10 ? 'Les points se collent le long des bras de la spirale'
+      : r > 2  ? 'Ajustements fins — les grandes structures sont fixees'
+      :          'Termine — les points epousent la distribution cible';
+    document.getElementById('dnDesc').textContent = d;
+  }
+  function stop() { if(timer){clearInterval(timer);timer=null;document.getElementById('dnPlay').textContent='Lecture'} }
+  document.getElementById('dnStep').onclick = function() { stop(); if(step<T){step++;draw()} };
+  document.getElementById('dnPlay').onclick = function() {
+    if(timer){stop();return} if(step>=T)step=0;
+    document.getElementById('dnPlay').textContent='Pause'; draw();
+    timer = setInterval(function(){if(step>=T){stop();return}step++;draw()},200);
+  };
+  document.getElementById('dnReset').onclick = function() { stop(); computeTraj(); step=0; draw(); };
+  document.getElementById('dnSlider').addEventListener('input', function(e) { stop(); step=+e.target.value; draw(); });
+  draw();
+  return { draw: draw };
+})();
+
+// ══════════════════════════════════
+// SECTION: Single point tracker
+// ══════════════════════════════════
+(function() {
+  var c = getCtx('cvSingle'), W = c.W, H = c.H, ctx = c.ctx;
+  var CX = W/2, CY = H/2, SC = W/7;
+  var steps, step = 0, timer = null;
+
+  function compute() {
+    steps = [];
+    var p = [randn()*1.3, randn()*1.3];
+    steps.push({xt:[p[0],p[1]], t:T, mu:null, eh:null, c:null, r:null, m:null, z:null, sig:null, ws:null, sa:null, sn:null, al:null, sal:null, abar:null, beta:null});
+    for (var t = T; t >= 1; t--) {
+      var abar = ab[t], sa = Math.sqrt(abar), sn = Math.sqrt(1-abar), va = 1-abar;
+      var al = 1-betas[t], sal = Math.sqrt(al), sig = t>1?Math.sqrt(betas[t]):0, cc = betas[t]/sn;
+      var xt = p, lw = new Float64Array(ND);
+      for (var j = 0; j < ND; j++) { var ex = xt[0]-sa*data[j][0], ey = xt[1]-sa*data[j][1]; lw[j] = -(ex*ex+ey*ey)/(2*va); }
+      var mxw = -1e30; for (j = 0; j < ND; j++) if (lw[j]>mxw) mxw = lw[j];
+      var sw = 0, w = new Float64Array(ND); for (j = 0; j < ND; j++) { w[j] = Math.exp(lw[j]-mxw); sw += w[j]; }
+      for (j = 0; j < ND; j++) w[j] /= sw;
+      var m0 = 0, m1 = 0; for (j = 0; j < ND; j++) { m0 += w[j]*data[j][0]; m1 += w[j]*data[j][1]; }
+      var eh0 = (xt[0]-sa*m0)/sn, eh1 = (xt[1]-sa*m1)/sn;
+      var r0 = xt[0]-cc*eh0, r1 = xt[1]-cc*eh1;
+      var mg0 = r0/sal, mg1 = r1/sal;
+      var z0 = randn(), z1 = randn();
+      var nx = mg0+sig*z0, ny = mg1+sig*z1;
+      var ws = []; for (j = 0; j < ND; j++) ws.push(w[j]);
+      var st = steps[steps.length-1];
+      st.mu=[m0,m1]; st.eh=[eh0,eh1]; st.c=cc; st.r=[r0,r1]; st.m=[mg0,mg1]; st.z=[z0,z1]; st.sig=sig; st.ws=ws;
+      st.sa=sa; st.sn=sn; st.al=al; st.sal=sal; st.abar=abar; st.beta=betas[t];
+      p = [nx, ny];
+      steps.push({xt:[p[0],p[1]], t:t-1, mu:null, eh:null, c:null, r:null, m:null, z:null, sig:null, ws:null, sa:null, sn:null, al:null, sal:null, abar:null, beta:null});
+    }
+  }
+  compute();
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    var s = steps[step], ws = s.ws;
+    // Data points with weight sizing
+    for (var i = 0; i < ND; i++) {
+      var sz = ws ? Math.max(2.5, Math.min(18, ws[i]*ND*1.1)) : 3.5;
+      var alpha = ws ? Math.max(0.1, Math.min(0.85, ws[i]*ND*0.45)) : 0.15;
+      ctx.beginPath(); ctx.arc(txf(data[i][0],CX,SC),tyf(data[i][1],CY,SC),sz,0,6.3);
+      ctx.fillStyle = muted + alpha + ')'; ctx.fill();
+    }
+    // Trajectory
+    ctx.beginPath(); ctx.strokeStyle = dm?'#A08CFF':'#7C5CFC'; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.5;
+    for (var k = 0; k <= step; k++) { var pt = steps[k].xt; if(k===0) ctx.moveTo(txf(pt[0],CX,SC),tyf(pt[1],CY,SC)); else ctx.lineTo(txf(pt[0],CX,SC),tyf(pt[1],CY,SC)); }
+    ctx.stroke(); ctx.globalAlpha = 1;
+    // Past dots
+    for (k = 0; k <= step; k++) { var pt = steps[k].xt; ctx.beginPath(); ctx.arc(txf(pt[0],CX,SC),tyf(pt[1],CY,SC),2.5,0,6.3); ctx.fillStyle = 'rgba(124,92,252,0.3)'; ctx.fill(); }
+    // Mu marker
+    if (s.mu) {
+      ctx.beginPath(); ctx.arc(txf(s.mu[0],CX,SC),tyf(s.mu[1],CY,SC),8,0,6.3);
+      ctx.fillStyle = dm?'#3CC9A4':'#0D9474'; ctx.fill();
+      ctx.beginPath(); ctx.arc(txf(s.mu[0],CX,SC),tyf(s.mu[1],CY,SC),8,0,6.3); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+      // Dashed line to mu
+      ctx.beginPath(); ctx.setLineDash([6,4]); ctx.moveTo(txf(s.xt[0],CX,SC),tyf(s.xt[1],CY,SC));
+      ctx.lineTo(txf(s.mu[0],CX,SC),tyf(s.mu[1],CY,SC)); ctx.strokeStyle=dm?'#3CC9A4':'#0D9474'; ctx.lineWidth=1.5; ctx.stroke(); ctx.setLineDash([]);
+    }
+    // Current point
+    var xt = s.xt;
+    ctx.beginPath(); ctx.arc(txf(xt[0],CX,SC),tyf(xt[1],CY,SC),9,0,6.3);
+    ctx.fillStyle = dm?'#F0765E':'#E8553A'; ctx.fill();
+    ctx.beginPath(); ctx.arc(txf(xt[0],CX,SC),tyf(xt[1],CY,SC),9,0,6.3); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    // Arrow to next
+    if (step < T) {
+      var nx = steps[step+1].xt;
+      ctx.beginPath(); ctx.moveTo(txf(xt[0],CX,SC),tyf(xt[1],CY,SC));
+      ctx.lineTo(txf(nx[0],CX,SC),tyf(nx[1],CY,SC));
+      ctx.strokeStyle=dm?'#F0765E':'#E8553A'; ctx.lineWidth=2; ctx.stroke();
+      var angle=Math.atan2(-(nx[1]-xt[1]),nx[0]-xt[0]),hl=12;
+      ctx.beginPath();
+      ctx.moveTo(txf(nx[0],CX,SC),tyf(nx[1],CY,SC));
+      ctx.lineTo(txf(nx[0],CX,SC)-hl*Math.cos(angle-0.4),tyf(nx[1],CY,SC)+hl*Math.sin(angle-0.4));
+      ctx.moveTo(txf(nx[0],CX,SC),tyf(nx[1],CY,SC));
+      ctx.lineTo(txf(nx[0],CX,SC)-hl*Math.cos(angle+0.4),tyf(nx[1],CY,SC)+hl*Math.sin(angle+0.4));
+      ctx.stroke();
+    }
+    document.getElementById('spLab').textContent = 'Pas ' + (step+1) + ' / ' + T + '  (t = ' + s.t + ')';
+    document.getElementById('spSlider').value = step;
+    // Update calc table
+    updateCalc(s);
+  }
+
+  function updateCalc(s) {
+    var o = document.getElementById('spCalc'), h = '', xt = s.xt;
+    if (!s.mu) {
+      h = '<p style="margin:0;font-size:0.9rem;font-weight:500">Etat initial : bruit pur</p>';
+      h += '<table class="calc-table"><tr><td>x_T</td><td>(' + f(xt[0]) + ', ' + f(xt[1]) + ')</td><td>Tire au hasard</td></tr></table>';
+      h += '<p style="font-size:0.85rem;color:var(--fg-muted);margin:0.5rem 0 0">Appuie sur Pas suivant pour lancer le premier pas de denoising.</p>';
+    } else {
+      h = '<table class="calc-table">';
+      h += '<tr><td class="calc-section" colspan="3">Donnees de ce pas</td></tr>';
+      h += '<tr><td>x_t</td><td>(' + f(xt[0]) + ', ' + f(xt[1]) + ')</td><td>Position actuelle</td></tr>';
+      h += '<tr><td>t</td><td>' + s.t + '</td><td></td></tr>';
+      h += '<tr><td>β_t</td><td>' + f(s.beta) + '</td><td>Dose du schedule</td></tr>';
+      h += '<tr><td>α_t = 1 - β_t</td><td>' + f(s.al) + '</td><td></td></tr>';
+      h += '<tr><td>ᾱ_t (produit cumule)</td><td>' + f(s.abar) + '</td><td></td></tr>';
+      h += '<tr><td>√ᾱ_t</td><td>' + f(s.sa) + '</td><td>Poids du signal</td></tr>';
+      h += '<tr><td>√(1 - ᾱ_t)</td><td>' + f(s.sn) + '</td><td>Poids du bruit</td></tr>';
+      h += '<tr><td class="calc-section" colspan="3">Le reseau estime le bruit</td></tr>';
+      h += '<tr><td>E[x₀ | x_t]</td><td>(' + f(s.mu[0]) + ', ' + f(s.mu[1]) + ')</td><td>Point vert sur le graphe</td></tr>';
+      h += '<tr><td>ε̂</td><td>(' + f(s.eh[0]) + ', ' + f(s.eh[1]) + ')</td><td>Bruit predit</td></tr>';
+      h += '<tr><td class="calc-section" colspan="3">Calcul 1 : dose a retirer</td></tr>';
+      h += '<tr><td>c = β / √(1-ᾱ)</td><td>' + f(s.beta) + ' / ' + f(s.sn) + ' = ' + f(s.c) + '</td><td></td></tr>';
+      h += '<tr><td class="calc-section" colspan="3">Calcul 2 : retirer la dose</td></tr>';
+      h += '<tr><td>r = x_t - c × ε̂</td><td>(' + f(s.r[0]) + ', ' + f(s.r[1]) + ')</td><td></td></tr>';
+      h += '<tr><td style="color:var(--fg-muted)">detail x</td><td style="font-size:0.75rem">' + f(xt[0]) + ' - ' + f(s.c) + ' × ' + f(s.eh[0]) + '</td><td></td></tr>';
+      h += '<tr><td style="color:var(--fg-muted)">detail y</td><td style="font-size:0.75rem">' + f(xt[1]) + ' - ' + f(s.c) + ' × ' + f(s.eh[1]) + '</td><td></td></tr>';
+      h += '<tr><td class="calc-section" colspan="3">Calcul 3 : regonfler</td></tr>';
+      h += '<tr><td>m = r / √α_t</td><td>(' + f(s.m[0]) + ', ' + f(s.m[1]) + ')</td><td></td></tr>';
+      h += '<tr><td class="calc-section" colspan="3">Calcul 4 : bruit frais</td></tr>';
+      h += '<tr><td>σ_t = √β_t</td><td>' + f(s.sig) + '</td><td>' + (s.t<=1?'= 0 au dernier pas':'') + '</td></tr>';
+      h += '<tr><td>z (hasard)</td><td>(' + f(s.z[0]) + ', ' + f(s.z[1]) + ')</td><td></td></tr>';
+      h += '<tr><td>σ × z</td><td>(' + f(s.sig*s.z[0]) + ', ' + f(s.sig*s.z[1]) + ')</td><td></td></tr>';
+      var nx = steps[step+1] ? steps[step+1].xt : s.m;
+      h += '<tr><td class="calc-section" colspan="3">Resultat</td></tr>';
+      h += '<tr><td style="font-weight:500">x_{t-1}</td><td style="font-weight:500">(' + f(nx[0]) + ', ' + f(nx[1]) + ')</td><td>Fleche orange</td></tr>';
+      var d0 = Math.sqrt((xt[0]-s.mu[0])**2+(xt[1]-s.mu[1])**2);
+      var d1 = Math.sqrt((nx[0]-s.mu[0])**2+(nx[1]-s.mu[1])**2);
+      h += '<tr><td>Distance avant</td><td>' + f(d0) + '</td><td>x_t a x̂₀</td></tr>';
+      h += '<tr><td>Distance apres</td><td>' + f(d1) + '</td><td>' + (d1<d0?'Plus proche':'Recule (bruit frais)') + '</td></tr>';
+      h += '</table>';
+    }
+    o.innerHTML = h;
+  }
+
+  function stop() { if(timer){clearInterval(timer);timer=null;document.getElementById('spPlay').textContent='Lecture'} }
+  document.getElementById('spStep').onclick = function() { stop(); if(step<T){step++;draw()} };
+  document.getElementById('spBack').onclick = function() { stop(); if(step>0){step--;draw()} };
+  document.getElementById('spPlay').onclick = function() {
+    if(timer){stop();return} if(step>=T)step=0;
+    document.getElementById('spPlay').textContent='Pause'; draw();
+    timer = setInterval(function(){if(step>=T){stop();return}step++;draw()},1200);
+  };
+  document.getElementById('spReset').onclick = function() { stop(); compute(); step=0; draw(); };
+  document.getElementById('spSlider').addEventListener('input', function(e) { stop(); step=+e.target.value; draw(); });
+  draw();
+})();
+
+// ── Navigation highlight ──
+(function() {
+  var links = document.querySelectorAll('nav a');
+  var sections = [];
+  links.forEach(function(a) { var id = a.getAttribute('href').slice(1); var el = document.getElementById(id); if(el) sections.push({a:a,el:el}); });
+  function update() {
+    var st = window.scrollY + 80;
+    var cur = sections[0];
+    sections.forEach(function(s) { if(s.el.offsetTop <= st) cur = s; });
+    links.forEach(function(a) { a.classList.remove('active'); });
+    if (cur) cur.a.classList.add('active');
+  }
+  window.addEventListener('scroll', update, {passive:true});
+  update();
+})();
+</script>
