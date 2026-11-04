@@ -1,7 +1,6 @@
 <title>Diffusion : du bruit a l'image</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Source+Code+Pro:wght@400;500&display=swap">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <style>
 :root {
   --bg: #FAFAF7; --bg-alt: #F0EEEA; --bg-card: #FFFFFF;
@@ -95,145 +94,29 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 .columns{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @media(max-width:600px){.columns{grid-template-columns:1fr}}
 .hero-sub{font-size:1.1rem;color:var(--fg-dim);max-width:560px;line-height:1.6}
-.math-block{background:var(--bg-alt);padding:20px 24px;border-radius:var(--radius);margin:1rem 0;overflow-x:auto;text-align:center;border:1px solid var(--border)}
-.math-block .katex{font-size:1.25em}
-.deriv{margin:1rem 0 1rem 1.5rem}
-.deriv-step{margin:.8rem 0}
-.deriv-step .label{font-size:.82rem;color:var(--fg-dim);margin-bottom:4px}
 .note{font-size:.88rem;color:var(--fg-dim);margin:1rem 0;padding:12px 16px;border-left:3px solid var(--amber);background:var(--amber-bg);border-radius:0 var(--radius) var(--radius) 0}
 .algo-box{background:var(--bg-card);border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:1.5rem;margin:1.5rem 0}
 .algo-title{font-weight:700;font-size:.85rem;margin:0 0 1rem;padding-bottom:8px;border-bottom:2px solid var(--accent);color:var(--accent);letter-spacing:.03em}
 .algo-line{display:flex;gap:10px;padding:4px 0;align-items:baseline;flex-wrap:wrap}
 .algo-num{font-family:var(--font-mono);font-size:.78rem;color:var(--fg-muted);min-width:22px;text-align:right}
 .algo-kw{font-weight:700;color:var(--accent);font-size:.88rem}
+.deriv{margin:1rem 0 1rem 1.5rem}
+.deriv-step{margin:.8rem 0}
+.deriv-step .label{font-size:.82rem;color:var(--fg-dim);margin-bottom:4px}
 
-/* ── Inline KaTeX core CSS (fonts fallback to serif) ── */
-.katex{font:normal 1.21em KaTeX_Main,Times New Roman,serif;line-height:1.2;text-indent:0;text-rendering:auto;color:var(--fg)}
-.katex *{-ms-high-contrast-adjust:none!important;border-color:currentColor}
-.katex .katex-html{display:inline-block}
-.katex .katex-mathml{position:absolute;clip:rect(1px,1px,1px,1px);padding:0;border:0;height:1px;width:1px;overflow:hidden}
-.katex .base{position:relative;display:inline-block;white-space:nowrap;width:min-content}
-.katex .strut{display:inline-block}
-.katex .textbf{font-weight:700}
-.katex .textit{font-style:italic}
-.katex .textrm{font-family:KaTeX_Main,Times New Roman,serif}
-.katex .textsf{font-family:KaTeX_SansSerif,sans-serif}
-.katex .texttt{font-family:KaTeX_Typewriter,monospace}
-.katex .mathnormal{font-family:KaTeX_Math,Times New Roman,serif;font-style:italic}
-.katex .mathit{font-family:KaTeX_Main,Times New Roman,serif;font-style:italic}
-.katex .mathrm{font-style:normal}
-.katex .mathbf{font-family:KaTeX_Main,Times New Roman,serif;font-weight:700}
-.katex .boldsymbol{font-family:KaTeX_Math,Times New Roman,serif;font-weight:700;font-style:italic}
-.katex .amsrm{font-family:KaTeX_AMS,serif}
-.katex .mathbb{font-family:KaTeX_AMS,serif}
-.katex .mathcal{font-family:KaTeX_Caligraphic,serif}
-.katex .mathfrak{font-family:KaTeX_Fraktur,serif}
-.katex .mathscr{font-family:KaTeX_Script,serif}
-.katex .mathsf{font-family:KaTeX_SansSerif,sans-serif}
-.katex .mathtt{font-family:KaTeX_Typewriter,monospace}
-.katex .mord+.mop{margin-left:.16667em}
-.katex .mord+.mbin{margin-left:.22222em}
-.katex .mord+.mrel{margin-left:.27778em}
-.katex .mord+.minner{margin-left:.16667em}
-.katex .mop+.mord{margin-left:.16667em}
-.katex .mop+.mop{margin-left:.16667em}
-.katex .mop+.mrel{margin-left:.27778em}
-.katex .mop+.minner{margin-left:.16667em}
-.katex .mbin+.mord{margin-left:.22222em}
-.katex .mbin+.mop{margin-left:.22222em}
-.katex .mbin+.mopen{margin-left:.22222em}
-.katex .mbin+.minner{margin-left:.22222em}
-.katex .mrel+.mord{margin-left:.27778em}
-.katex .mrel+.mop{margin-left:.27778em}
-.katex .mrel+.mopen{margin-left:.27778em}
-.katex .mrel+.minner{margin-left:.27778em}
-.katex .mclose+.mop{margin-left:.16667em}
-.katex .mclose+.mbin{margin-left:.22222em}
-.katex .mclose+.mrel{margin-left:.27778em}
-.katex .mclose+.minner{margin-left:.16667em}
-.katex .mpunct+.mord{margin-left:.16667em}
-.katex .mpunct+.mop{margin-left:.16667em}
-.katex .mpunct+.mrel{margin-left:.16667em}
-.katex .mpunct+.mopen{margin-left:.16667em}
-.katex .mpunct+.mclose{margin-left:.16667em}
-.katex .mpunct+.mpunct{margin-left:.16667em}
-.katex .mpunct+.minner{margin-left:.16667em}
-.katex .minner+.mord{margin-left:.16667em}
-.katex .minner+.mop{margin-left:.16667em}
-.katex .minner+.mbin{margin-left:.22222em}
-.katex .minner+.mrel{margin-left:.27778em}
-.katex .minner+.mopen{margin-left:.16667em}
-.katex .minner+.mpunct{margin-left:.16667em}
-.katex .minner+.minner{margin-left:.16667em}
-.katex .mopen+.mclose,.katex .mclose+.mopen{margin-left:0}
-.katex .mord+.mopen,.katex .mop+.mopen,.katex .mrel+.mclose,.katex .mbin+.mclose{margin-left:0}
-.katex .vlist-t{display:inline-table;table-layout:fixed;border-collapse:collapse}
-.katex .vlist-r{display:table-row}
-.katex .vlist{display:table-cell;vertical-align:bottom;position:relative}
-.katex .vlist>span{display:block;height:0;position:relative}
-.katex .vlist>span>span{display:inline-block}
-.katex .vlist>span>.pstrut{overflow:hidden;width:0}
-.katex .vlist-t2{margin-right:-2px}
-.katex .vlist-s{display:table-cell;vertical-align:bottom;font-size:1px;width:2px;min-width:2px}
-.katex .vbox{display:inline-flex;flex-direction:column;align-items:baseline}
-.katex .hbox{display:inline-flex;flex-direction:row;width:100%}
-.katex .thinbox{display:inline-flex;flex-direction:column;align-items:baseline;width:0}
-.katex .msupsub{text-align:left}
-.katex .mfrac>span>span{text-align:center}
-.katex .mfrac .frac-line{display:inline-block;width:100%;border-bottom-style:solid}
-.katex .mfrac .frac-line,.katex .overline .overline-line,.katex .underline .underline-line,.katex .hline,.katex .hdashline,.katex .rule{min-height:1px}
-.katex .mspace{display:inline-block}
-.katex .llap,.katex .rlap,.katex .clap{width:0;position:relative}
-.katex .llap>.inner,.katex .rlap>.inner,.katex .clap>.inner{position:absolute}
-.katex .llap>.fix,.katex .rlap>.fix,.katex .clap>.fix{display:inline-block}
-.katex .llap>.inner{right:0}
-.katex .rlap>.inner,.katex .clap>.inner{left:0}
-.katex .clap>.inner{margin-left:-50%;margin-right:50%}
-.katex .sqrt{display:inline-block}
-.katex .sqrt>.root{margin-left:.27777778em;margin-right:-.55555556em}
-.katex .sizing,.katex .fontsize-ensurer{display:inline-block}
-.katex .sizing.reset-size1.size1{font-size:1em}
-.katex .sizing.reset-size1.size2{font-size:1.2em}
-.katex .sizing.reset-size1.size3{font-size:1.4em}
-.katex .sizing.reset-size1.size4{font-size:1.6em}
-.katex .sizing.reset-size1.size5{font-size:1.8em}
-.katex .sizing.reset-size1.size6{font-size:2em}
-.katex .sizing.reset-size6.size1{font-size:.5em}
-.katex .sizing.reset-size6.size2{font-size:.6em}
-.katex .sizing.reset-size6.size3{font-size:.7em}
-.katex .sizing.reset-size6.size4{font-size:.8em}
-.katex .sizing.reset-size6.size5{font-size:.9em}
-.katex .sizing.reset-size6.size6{font-size:1em}
-.katex .delimsizing.size1{font-family:KaTeX_Size1,Times New Roman,serif}
-.katex .delimsizing.size2{font-family:KaTeX_Size2,Times New Roman,serif}
-.katex .delimsizing.size3{font-family:KaTeX_Size3,Times New Roman,serif}
-.katex .delimsizing.size4{font-family:KaTeX_Size4,Times New Roman,serif}
-.katex .delimsizing.mult .delim-size1>span{font-family:KaTeX_Size1,Times New Roman,serif}
-.katex .delimsizing.mult .delim-size4>span{font-family:KaTeX_Size4,Times New Roman,serif}
-.katex .nulldelimiter{display:inline-block;width:.12em}
-.katex .delimcenter,.katex .op-symbol{position:relative}
-.katex .op-symbol.small-op{font-family:KaTeX_Size1,Times New Roman,serif}
-.katex .op-symbol.large-op{font-family:KaTeX_Size2,Times New Roman,serif}
-.katex .op-limits>.vlist-t{text-align:center}
-.katex .accent>.vlist-t{text-align:center}
-.katex .accent .accent-body{position:relative}
-.katex .accent .accent-body:not(.accent-full){width:0}
-.katex .overlay{display:block}
-.katex .mtable .vertical-separator{display:inline-block;min-width:1px}
-.katex .mtable .arraycolsep{display:inline-block}
-.katex .mtable .col-align-c>.vlist-t{text-align:center}
-.katex .mtable .col-align-l>.vlist-t{text-align:left}
-.katex .mtable .col-align-r>.vlist-t{text-align:right}
-.katex-display{display:block;margin:1em 0;text-align:center}
-.katex-display>.katex{display:block;text-align:center;white-space:nowrap}
-.katex-display>.katex>.katex-html{display:block;position:relative}
-.katex-display>.katex>.katex-html>.tag{position:absolute;right:0}
-.katex .boxpad{padding:0 .3em}
-.katex .fbox,.katex .fcolorbox{box-sizing:border-box;border:.04em solid}
-.katex .cancel-pad{padding:0 .2em}
-.katex .cancel-lap{margin-left:-.2em;margin-right:-.2em}
-.katex .sout{border-bottom-style:solid;border-bottom-width:.08em}
-.katex .angl{box-decoration-break:clone;border-top:.049em solid;border-right:.049em solid;margin-right:.03889em}
+/* ── Math rendering (pure CSS, no KaTeX) ── */
+.m{font-family:Georgia,'Times New Roman',serif;font-style:italic;color:var(--fg)}
+.m sub,.m sup{font-size:.72em;font-style:italic}
+.mn{font-style:normal}
+.math-block{background:var(--bg-alt);padding:18px 24px;border-radius:var(--radius);margin:1rem 0;overflow-x:auto;text-align:center;border:1px solid var(--border);font-size:1.15rem;line-height:2}
+.math-block .m{font-size:1.15rem}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 3px;line-height:1.15;position:relative;top:-1px}
+.frac .num,.frac .den{padding:0 4px;font-family:Georgia,'Times New Roman',serif;font-style:italic;white-space:nowrap}
+.frac .num{border-bottom:1.5px solid var(--fg);padding-bottom:2px}
+.frac .den{padding-top:2px}
+.frac sub,.frac sup{font-size:.72em}
+.math-inline{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:1.05rem}
+.math-inline sub,.math-inline sup{font-size:.72em;font-style:italic}
 </style>
 
 <nav><div class="nav-inner">
@@ -264,49 +147,61 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 <div class="card card-teal">
 <p class="eyebrow" style="color:var(--teal)">Phase 2 : Reverse</p>
 <h3 style="margin-top:0">Le denoising</h3>
-<p style="font-size:.9rem;color:var(--fg-dim)">On parcourt le processus en temps renverse. Un reseau apprend la direction µ(x_t, t).</p>
+<p style="font-size:.9rem;color:var(--fg-dim)">On parcourt le processus en temps renverse. Un reseau apprend la direction µ(x<sub>t</sub>, t).</p>
 </div>
 </div>
 <div class="note">
-<strong>Notation :</strong> le cours utilise σ / σ̄ / ξ₀ / ξ_θ la ou le papier DDPM utilise α / ᾱ / ε / ε_θ. Ce guide utilise la notation DDPM (standard). Table de correspondance en bas de page.
+<strong>Notation :</strong> le cours utilise σ / σ̄ / ξ₀ / ξ<sub>θ</sub> la ou le papier DDPM utilise α / ᾱ / ε / ε<sub>θ</sub>. Ce guide utilise la notation DDPM (standard). Table de correspondance en bas de page.
 </div>
 </section>
 
 <section id="dataset">
 <p class="eyebrow">Le dataset</p>
 <h2>Le Swiss Roll</h2>
-<p>Spirale 2D. Chaque point suit une loi inconnue p(x₀). Le but : apprendre a generer de nouveaux points selon cette loi.</p>
+<p>Spirale 2D. Chaque point suit une loi inconnue <span class="m">p</span>(<span class="m">x</span><sub>0</sub>). Le but : apprendre a generer de nouveaux points selon cette loi.</p>
 <canvas id="cvDataset" width="1360" height="700"></canvas>
-<div class="legend"><span><span class="legend-dot" style="background:var(--accent)"></span> 200 points x₀, colores par angle θ</span></div>
+<div class="legend"><span><span class="legend-dot" style="background:var(--accent)"></span> 200 points <span class="m">x</span><sub>0</sub>, colores par angle θ</span></div>
 </section>
 
 <section id="noising-step">
 <p class="eyebrow">Phase 1 : Forward</p>
 <h2>Le noising, pas a pas</h2>
-<p>A chaque pas t, on melange x_{t-1} avec du bruit frais (dynamique de Langevin discretisee) :</p>
-<div class="math-block" id="eq-step"></div>
+<p>A chaque pas <span class="m">t</span>, on melange <span class="m">x</span><sub>t−1</sub> avec du bruit frais (dynamique de Langevin discretisee) :</p>
+<div class="math-block">
+<span class="m">x<sub>t</sub></span> = <span class="m">√α<sub>t</sub></span> · <span class="m">x<sub>t−1</sub></span> + <span class="m">√(1 − α<sub>t</sub>)</span> · <span class="m">ξ</span>
+<span style="margin-left:2em;color:var(--fg-dim);font-style:normal">ou <span class="m">ξ</span> ∼ 𝒩(0, <span class="mn">I</span>)</span>
+</div>
 <p>Decomposition :</p>
 <div class="card">
 <table class="data-table">
 <tr><th style="width:36%">Terme</th><th style="width:34%">Valeur</th><th>Role</th></tr>
-<tr><td id="eq-s1t"></td><td id="eq-s1v"></td><td>Fraction du signal gardee</td></tr>
-<tr><td id="eq-s2t"></td><td id="eq-s2v"></td><td>Bruit gaussien ajoute</td></tr>
-<tr><td id="eq-s3t"></td><td id="eq-s3v"></td><td>Dose de bruit a cette etape</td></tr>
+<tr><td><span class="math-inline">√α<sub>t</sub> · x<sub>t−1</sub></span></td><td><span class="math-inline">α<sub>t</sub> = 1 − β<sub>t</sub></span></td><td>Fraction du signal gardee</td></tr>
+<tr><td><span class="math-inline">√(1−α<sub>t</sub>) · ξ</span></td><td><span class="math-inline">ξ ∼ 𝒩(0, I)</span></td><td>Bruit gaussien ajoute</td></tr>
+<tr><td><span class="math-inline">β<sub>t</sub></span></td><td style="font-style:normal">petit, croissant avec <span class="m">t</span></td><td>Dose de bruit a cette etape</td></tr>
 </table>
 </div>
 <p>Les coefficients sont choisis pour que la variance reste stable :</p>
-<div class="math-block" id="eq-var"></div>
+<div class="math-block">
+<span class="mn">Var</span>(<span class="m">x<sub>t</sub></span>) = <span class="m">α<sub>t</sub></span> · <span class="mn">Var</span>(<span class="m">x<sub>t−1</sub></span>) + (1 − <span class="m">α<sub>t</sub></span>) = 1
+<span style="margin-left:1.5em;color:var(--fg-dim);font-style:normal">si Var(<span class="m">x<sub>t−1</sub></span>) = 1</span>
+</div>
 </section>
 
 <section id="noising-direct">
 <p class="eyebrow">Le raccourci</p>
-<h2>Formule directe : x₀ → x_t en un coup</h2>
-<p>On peut exprimer x_t directement en fonction de x₀ (cours slide 6, chap. 4). On pose le produit cumule :</p>
-<div class="math-block" id="eq-abar"></div>
+<h2>Formule directe : x₀ → x<sub>t</sub> en un coup</h2>
+<p>On peut exprimer <span class="m">x<sub>t</sub></span> directement en fonction de <span class="m">x</span><sub>0</sub> (cours slide 6, chap. 4). On pose le produit cumule :</p>
+<div class="math-block">
+<span class="m">ᾱ<sub>t</sub></span> = <span class="m">∏<sup>t</sup><sub>i=1</sub> α<sub>i</sub></span>
+<span style="margin-left:2em;color:var(--fg-dim);font-style:normal">(produit cumule)</span>
+</div>
 <p>Alors la recursion se telescopise en :</p>
 <div class="card card-accent">
-<div class="math-block" style="background:transparent;border:none;margin:0" id="eq-direct"></div>
-<p style="margin:8px 0 0;font-size:.85rem;color:var(--fg-dim)">Formule a connaitre. x_t = melange lineaire de x₀ (signal) et ε (bruit), avec un seul ε tire une fois.</p>
+<div class="math-block" style="background:transparent;border:none;margin:0">
+<span class="m">x<sub>t</sub></span> = <span class="m">√ᾱ<sub>t</sub></span> · <span class="m">x</span><sub>0</sub> + <span class="m">√(1 − ᾱ<sub>t</sub>)</span> · <span class="m">ε</span>
+<span style="margin-left:2em;color:var(--fg-dim);font-style:normal"><span class="m">ε</span> ∼ 𝒩(0, <span class="mn">I</span>)</span>
+</div>
+<p style="margin:8px 0 0;font-size:.85rem;color:var(--fg-dim)">Formule a connaitre. <span class="m">x<sub>t</sub></span> = melange lineaire de <span class="m">x</span><sub>0</sub> (signal) et <span class="m">ε</span> (bruit), avec un seul <span class="m">ε</span> tire une fois.</p>
 </div>
 
 <h3>Visualisation interactive</h3>
@@ -316,15 +211,15 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 <input type="range" id="slNoise" min="0" max="50" value="0" step="1">
 <output id="outNoise">t = 0</output>
 </div>
-<div id="outNoiseKatex" style="margin:8px 0;min-height:30px"></div>
+<div id="outNoiseDetail" style="margin:8px 0;min-height:24px;font-size:.9rem;color:var(--fg-dim)"></div>
 <div class="legend">
-<span><span class="legend-dot" style="background:var(--accent)"></span> x_t bruite</span>
-<span><span class="legend-dot" style="background:var(--fg-muted);opacity:.3"></span> x₀ propre</span>
+<span><span class="legend-dot" style="background:var(--accent)"></span> <span class="m">x<sub>t</sub></span> bruite</span>
+<span><span class="legend-dot" style="background:var(--fg-muted);opacity:.3"></span> <span class="m">x</span><sub>0</sub> propre</span>
 </div>
 
 <h3>Valeurs du schedule</h3>
 <table class="data-table">
-<tr><th>t</th><th id="th-sa"></th><th id="th-sn"></th><th>Ce qu'on voit</th></tr>
+<tr><th>t</th><th><span class="math-inline">√ᾱ<sub>t</sub></span></th><th><span class="math-inline">√(1−ᾱ<sub>t</sub>)</span></th><th>Ce qu'on voit</th></tr>
 <tr><td>0</td><td>1.00</td><td>0.00</td><td>Spirale parfaite</td></tr>
 <tr><td>10</td><td id="s10s">—</td><td id="s10n">—</td><td>Leger grain</td></tr>
 <tr><td>20</td><td id="s20s">—</td><td id="s20n">—</td><td>Forme floue</td></tr>
@@ -337,12 +232,18 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 <section id="schedule">
 <p class="eyebrow">Les parametres</p>
 <h2>Le schedule de bruit</h2>
-<div class="math-block" id="eq-sched"></div>
+<div class="math-block">
+<span class="m">β<sub>t</sub></span> = 0.001 + 0.099 · <span class="frac"><span class="num"><span class="m">t</span> − 1</span><span class="den"><span class="m">T</span> − 1</span></span>
+<span style="margin:0 1.5em;color:var(--fg-dim);font-style:normal">|</span>
+<span class="m">α<sub>t</sub></span> = 1 − <span class="m">β<sub>t</sub></span>
+<span style="margin:0 1.5em;color:var(--fg-dim);font-style:normal">|</span>
+<span class="m">ᾱ<sub>t</sub></span> = <span class="m">∏<sup>t</sup><sub>i=1</sub> α<sub>i</sub></span>
+</div>
 <canvas id="cvSchedule" width="1360" height="500"></canvas>
 <div class="legend">
-<span><span class="legend-dot" style="background:var(--teal)"></span> √ᾱ_t (signal)</span>
-<span><span class="legend-dot" style="background:var(--coral)"></span> √(1−ᾱ_t) (bruit)</span>
-<span><span class="legend-dot" style="background:var(--fg-muted)"></span> β_t ×5</span>
+<span><span class="legend-dot" style="background:var(--teal)"></span> √ᾱ<sub>t</sub> (signal)</span>
+<span><span class="legend-dot" style="background:var(--coral)"></span> √(1−ᾱ<sub>t</sub>) (bruit)</span>
+<span><span class="legend-dot" style="background:var(--fg-muted)"></span> β<sub>t</sub> ×5</span>
 </div>
 </section>
 
@@ -352,37 +253,52 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 
 <h3>Le probleme</h3>
 <p>Le reverse process doit aussi etre un mouvement Brownien (cours slide 8). On veut :</p>
-<div class="math-block" id="eq-rgoal"></div>
-<p>On ne connait pas µ(x_t, t). Le reseau de neurones va l'apprendre.</p>
+<div class="math-block">
+<span class="m">x<sub>t−1</sub></span> ∼ 𝒩(<span class="m">µ</span>(<span class="m">x<sub>t</sub></span>, <span class="m">t</span>), <span class="m">β<sub>t</sub></span> · <span class="mn">I</span>)
+</div>
+<p>On ne connait pas <span class="m">µ</span>(<span class="m">x<sub>t</sub></span>, <span class="m">t</span>). Le reseau de neurones va l'apprendre.</p>
 
 <h3>Derivation de µ (cours slides 10-12)</h3>
 <div class="deriv">
-<div class="deriv-step"><div class="label">1. On part du noising :</div><div class="math-block" id="eq-d1"></div></div>
-<div class="deriv-step"><div class="label">2. On isole x₀ :</div><div class="math-block" id="eq-d2"></div></div>
-<div class="deriv-step"><div class="label">3. On injecte dans µ (le cours derive que µ vaut) :</div><div class="math-block" id="eq-mu"></div></div>
-<div class="deriv-step"><div class="label">4. Le point commun est ε ~ N(0, I) = le gradient de la loi = la fonction score (slide 12).</div></div>
+<div class="deriv-step">
+<div class="label">1. On part du noising :</div>
+<div class="math-block"><span class="m">x<sub>t</sub></span> = <span class="m">√ᾱ<sub>t</sub></span> · <span class="m">x</span><sub>0</sub> + <span class="m">√(1 − ᾱ<sub>t</sub>)</span> · <span class="m">ε</span></div>
+</div>
+<div class="deriv-step">
+<div class="label">2. On isole x₀ :</div>
+<div class="math-block"><span class="m">x</span><sub>0</sub> = <span class="frac"><span class="num">1</span><span class="den">√ᾱ<sub>t</sub></span></span> (<span class="m">x<sub>t</sub></span> − <span class="m">√(1 − ᾱ<sub>t</sub>)</span> · <span class="m">ε</span>)</div>
+</div>
+<div class="deriv-step">
+<div class="label">3. On injecte dans µ (le cours derive que µ vaut) :</div>
+<div class="math-block"><span class="m">µ</span>(<span class="m">x<sub>t</sub></span>, <span class="m">t</span>) = <span class="frac"><span class="num">1</span><span class="den">√α<sub>t</sub></span></span> <span style="font-size:1.4em">(</span><span class="m">x<sub>t</sub></span> − <span class="frac"><span class="num">1 − α<sub>t</sub></span><span class="den">√(1 − ᾱ<sub>t</sub>)</span></span> · <span class="m">ε</span><span style="font-size:1.4em">)</span></div>
+</div>
+<div class="deriv-step">
+<div class="label">4. Le point commun est <span class="m">ε</span> ∼ 𝒩(0, I) = le gradient de la loi = la fonction score (slide 12).</div>
+</div>
 </div>
 
 <h3>Le reseau predit ε</h3>
-<p>Plutot qu'apprendre µ, on apprend ε (plus stable). Le reseau recoit x_t et t :</p>
-<div class="math-block" id="eq-net"></div>
+<p>Plutot qu'apprendre µ, on apprend ε (plus stable). Le reseau recoit <span class="m">x<sub>t</sub></span> et <span class="m">t</span> :</p>
+<div class="math-block"><span class="m">ε̂</span> = <span class="m">ε<sub>θ</sub></span>(<span class="m">x<sub>t</sub></span>, <span class="m">t</span>)</div>
 
 <h3>Formule complete du pas de generation (Algorithme 2, slide 15)</h3>
 <div class="card card-accent">
-<div class="math-block" style="background:transparent;border:none;margin:0" id="eq-gen"></div>
-<p style="margin:8px 0 0;font-size:.85rem;color:var(--fg-dim)">z ~ N(0,I) si t > 1, sinon z = 0.</p>
+<div class="math-block" style="background:transparent;border:none;margin:0">
+<span class="m">x<sub>t−1</sub></span> = <span class="frac"><span class="num">1</span><span class="den">√α<sub>t</sub></span></span> <span style="font-size:1.4em">(</span><span class="m">x<sub>t</sub></span> − <span class="frac"><span class="num">1 − α<sub>t</sub></span><span class="den">√(1 − ᾱ<sub>t</sub>)</span></span> · <span class="m">ε<sub>θ</sub></span>(<span class="m">x<sub>t</sub></span>, <span class="m">t</span>)<span style="font-size:1.4em">)</span> + <span class="m">√β<sub>t</sub></span> · <span class="m">z</span>
+</div>
+<p style="margin:8px 0 0;font-size:.85rem;color:var(--fg-dim)"><span class="m">z</span> ∼ 𝒩(0, I) si t &gt; 1, sinon <span class="m">z</span> = 0.</p>
 </div>
 
 <h3>Les 4 sous-calculs</h3>
 <div class="card">
 <table class="calc-table">
 <tr><td class="calc-section" colspan="3">Prediction</td></tr>
-<tr><td>Bruit predit</td><td id="eq-c0"></td><td>Le reseau voit x_t et t</td></tr>
+<tr><td>Bruit predit</td><td><span class="math-inline">ε̂ = ε<sub>θ</sub>(x<sub>t</sub>, t)</span></td><td>Le reseau voit x<sub>t</sub> et t</td></tr>
 <tr><td class="calc-section" colspan="3">Pas DDPM</td></tr>
-<tr><td>1. Coefficient</td><td id="eq-c1"></td><td>Fraction a retirer</td></tr>
-<tr><td>2. Retrait</td><td id="eq-c2"></td><td>Le debruitage</td></tr>
-<tr><td>3. Renormaliser</td><td id="eq-c3"></td><td>Compense le retrecissement</td></tr>
-<tr><td>4. Bruit frais</td><td id="eq-c4"></td><td>Maintient la diversite</td></tr>
+<tr><td>1. Coefficient</td><td><span class="math-inline">c = β<sub>t</sub> / √(1 − ᾱ<sub>t</sub>)</span></td><td>Fraction a retirer</td></tr>
+<tr><td>2. Retrait</td><td><span class="math-inline">r = x<sub>t</sub> − c · ε̂</span></td><td>Le debruitage</td></tr>
+<tr><td>3. Renormaliser</td><td><span class="math-inline">m = r / √α<sub>t</sub></span></td><td>Compense le retrecissement</td></tr>
+<tr><td>4. Bruit frais</td><td><span class="math-inline">x<sub>t−1</sub> = m + √β<sub>t</sub> · z</span></td><td>Maintient la diversite</td></tr>
 </table>
 </div>
 
@@ -407,7 +323,7 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 <div id="dnDesc" style="font-size:.85rem;color:var(--fg-dim);min-height:20px;margin:4px 0"></div>
 <div class="legend">
 <span><span class="legend-dot" style="background:var(--fg-muted);opacity:.3"></span> Cible</span>
-<span><span class="legend-dot" style="background:var(--accent);opacity:.6"></span> x_t</span>
+<span><span class="legend-dot" style="background:var(--accent);opacity:.6"></span> x<sub>t</sub></span>
 <span><span class="legend-dot" style="background:#7C5CFC"></span> 8 trajectoires</span>
 </div>
 </section>
@@ -415,7 +331,7 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 <section id="single">
 <p class="eyebrow">En detail</p>
 <h2>Un seul point, tous les calculs</h2>
-<p>Taille des points gris = poids w_i du debruiteur ideal.</p>
+<p>Taille des points gris = poids <span class="m">w<sub>i</sub></span> du debruiteur ideal.</p>
 <canvas id="cvSingle" width="1360" height="900"></canvas>
 <div class="controls">
 <button class="btn btn-accent" id="spPlay">Lecture</button>
@@ -427,7 +343,7 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 <div class="controls"><label>Pas</label><input type="range" id="spSlider" min="0" max="50" value="0" step="1"></div>
 <div class="legend">
 <span><span class="legend-dot" style="background:var(--fg-muted)"></span> Donnees</span>
-<span><span class="legend-dot" style="background:var(--coral)"></span> x_t</span>
+<span><span class="legend-dot" style="background:var(--coral)"></span> x<sub>t</sub></span>
 <span><span class="legend-dot" style="background:var(--teal)"></span> x̂₀</span>
 <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:16px;height:3px;background:var(--purple);border-radius:2px;display:inline-block"></span> Traj.</span>
 </div>
@@ -438,12 +354,14 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 <p class="eyebrow">Boucler la boucle</p>
 <h2>L'entrainement</h2>
 <p>Loss (cours slides 13-14) :</p>
-<div class="math-block" id="eq-loss"></div>
-<p style="font-size:.9rem">On connait le vrai ε car c'est nous qui l'avons tire. Supervision gratuite.</p>
+<div class="math-block">
+min<sub>θ</sub> 𝔼<sub><span class="m">x</span><sub>0</sub>, <span class="m">t</span>, <span class="m">ε</span></sub> [ ‖<span class="m">ε</span> − <span class="m">ε<sub>θ</sub></span>(<span class="m">x<sub>t</sub></span>, <span class="m">t</span>)‖² ]
+</div>
+<p style="font-size:.9rem">On connait le vrai <span class="m">ε</span> car c'est nous qui l'avons tire. Supervision gratuite.</p>
 
 <h3>Le lien avec le score (slide 12)</h3>
-<p>ε represente le gradient de la loi au cours du processus de Langevin :</p>
-<div class="math-block" id="eq-score"></div>
+<p><span class="m">ε</span> represente le gradient de la loi au cours du processus de Langevin :</p>
+<div class="math-block"><span class="m">ε</span> ∝ −∇<sub><span class="m">x<sub>t</sub></span></sub> log <span class="m">p</span>(<span class="m">x<sub>t</sub></span>)</div>
 <p style="font-size:.9rem;color:var(--fg-dim)">Le reseau apprend la direction ou la densite augmente → score-based model.</p>
 </section>
 
@@ -454,31 +372,31 @@ canvas{display:block;width:100%;border-radius:var(--radius);border:1px solid var
 
 <div class="algo-box">
 <div class="algo-title">Algorithme 1 : Entrainement</div>
-<div class="algo-line"><span class="algo-num">1:</span><span>Selectionner <span id="al1-1"></span></span></div>
-<div class="algo-line"><span class="algo-num">2:</span><span>Tirer <span id="al1-2"></span></span></div>
-<div class="algo-line"><span class="algo-num">3:</span><span>Tirer <span id="al1-3"></span></span></div>
+<div class="algo-line"><span class="algo-num">1:</span><span>Selectionner <span class="math-inline">x</span><sub>0</sub> ∼ <span class="math-inline">p</span>(<span class="math-inline">x</span><sub>0</sub>)</span></div>
+<div class="algo-line"><span class="algo-num">2:</span><span>Tirer <span class="math-inline">t</span> ∼ 𝒰({1, …, T})</span></div>
+<div class="algo-line"><span class="algo-num">3:</span><span>Tirer <span class="math-inline">ε</span> ∼ 𝒩(0, I)</span></div>
 <div class="algo-line"><span class="algo-num">4:</span><span class="algo-kw">while</span> loss &gt; seuil <span class="algo-kw">do</span></div>
-<div class="algo-line" style="padding-left:2rem"><span class="algo-num">5:</span><span>Gradient sur <span id="al1-5"></span></span></div>
+<div class="algo-line" style="padding-left:2rem"><span class="algo-num">5:</span><span>Gradient sur ‖<span class="math-inline">ε</span> − <span class="math-inline">ε<sub>θ</sub></span>(<span class="math-inline">x<sub>t</sub></span>, <span class="math-inline">t</span>)‖²</span></div>
 <div class="algo-line"><span class="algo-num">6:</span><span class="algo-kw">end while</span></div>
 </div>
 
 <div class="algo-box">
 <div class="algo-title">Algorithme 2 : Generation</div>
-<div class="algo-line"><span class="algo-num">1:</span><span>Tirer <span id="al2-1"></span></span></div>
-<div class="algo-line"><span class="algo-num">2:</span><span class="algo-kw">for</span> <span id="al2-2"></span> <span class="algo-kw">do</span></div>
-<div class="algo-line" style="padding-left:2rem"><span class="algo-num">3:</span><span>Si t &gt; 1 : <span id="al2-3a"></span> sinon z = 0</span></div>
-<div class="algo-line" style="padding-left:2rem"><span class="algo-num">4:</span><span id="al2-4"></span></div>
+<div class="algo-line"><span class="algo-num">1:</span><span>Tirer <span class="math-inline">x<sub>T</sub></span> ∼ 𝒩(0, I)</span></div>
+<div class="algo-line"><span class="algo-num">2:</span><span class="algo-kw">for</span> <span class="math-inline">t</span> ∈ {T, …, 1} <span class="algo-kw">do</span></div>
+<div class="algo-line" style="padding-left:2rem"><span class="algo-num">3:</span><span>Si t &gt; 1 : <span class="math-inline">z</span> ∼ 𝒩(0, I) sinon z = 0</span></div>
+<div class="algo-line" style="padding-left:2rem"><span class="algo-num">4:</span><span><span class="math-inline">x<sub>t−1</sub></span> = <span class="frac"><span class="num">1</span><span class="den">√α<sub>t</sub></span></span> (<span class="math-inline">x<sub>t</sub></span> − <span class="frac"><span class="num">1 − α<sub>t</sub></span><span class="den">√(1 − ᾱ<sub>t</sub>)</span></span> · <span class="math-inline">ε<sub>θ</sub></span>(<span class="math-inline">x<sub>t</sub></span>, <span class="math-inline">t</span>)) + <span class="math-inline">√β<sub>t</sub></span> · <span class="math-inline">z</span></span></div>
 <div class="algo-line"><span class="algo-num">5:</span><span class="algo-kw">end for</span></div>
 </div>
 
 <h3>Correspondance des notations</h3>
 <table class="data-table">
 <tr><th>Cours (R. Vaucher)</th><th>DDPM (Ho et al.)</th><th>Ce site</th></tr>
-<tr><td>σ_t</td><td>α_t</td><td>α_t</td></tr>
-<tr><td>σ̄_t</td><td>ᾱ_t</td><td>ᾱ_t</td></tr>
-<tr><td>1 − σ_t</td><td>β_t</td><td>β_t</td></tr>
+<tr><td>σ<sub>t</sub></td><td>α<sub>t</sub></td><td>α<sub>t</sub></td></tr>
+<tr><td>σ̄<sub>t</sub></td><td>ᾱ<sub>t</sub></td><td>ᾱ<sub>t</sub></td></tr>
+<tr><td>1 − σ<sub>t</sub></td><td>β<sub>t</sub></td><td>β<sub>t</sub></td></tr>
 <tr><td>ξ₀</td><td>ε</td><td>ε</td></tr>
-<tr><td>ξ_θ(x_t, t)</td><td>ε_θ(x_t, t)</td><td>ε_θ(x_t, t)</td></tr>
+<tr><td>ξ<sub>θ</sub>(x<sub>t</sub>, t)</td><td>ε<sub>θ</sub>(x<sub>t</sub>, t)</td><td>ε<sub>θ</sub>(x<sub>t</sub>, t)</td></tr>
 </table>
 
 <h3>References (slide 16)</h3>
@@ -493,43 +411,6 @@ Karras et al. — Elucidating the Design Space of Diffusion-Based Generative Mod
 
 <script>
 var dm=(function(){var d=document.documentElement.dataset.theme;if(d==='dark')return true;if(d==='light')return false;return matchMedia('(prefers-color-scheme:dark)').matches})();
-function K(id,tex,disp){var el=document.getElementById(id);if(!el)return;try{katex.render(tex,el,{displayMode:disp!==false,throwOnError:false})}catch(e){el.textContent=tex}}
-
-K('eq-step','x_t = \\sqrt{\\alpha_t}\\, x_{t-1} + \\sqrt{1 - \\alpha_t}\\;\\xi \\qquad \\xi \\sim \\mathcal{N}(0, I)');
-K('eq-s1t','\\sqrt{\\alpha_t}\\, x_{t-1}',false);
-K('eq-s1v','\\alpha_t = 1 - \\beta_t',false);
-K('eq-s2t','\\sqrt{1-\\alpha_t}\\;\\xi',false);
-K('eq-s2v','\\xi \\sim \\mathcal{N}(0, I)',false);
-K('eq-s3t','\\beta_t',false);
-K('eq-s3v','\\text{petit, croissant avec } t',false);
-K('eq-var','\\mathrm{Var}(x_t) = \\alpha_t \\cdot \\mathrm{Var}(x_{t-1}) + (1-\\alpha_t) = 1 \\quad \\text{si } \\mathrm{Var}(x_{t-1})=1');
-K('eq-abar','\\bar{\\alpha}_t = \\prod_{i=1}^{t} \\alpha_i \\qquad \\text{(produit cumule)}');
-K('eq-direct','x_t = \\sqrt{\\bar{\\alpha}_t}\\, x_0 + \\sqrt{1 - \\bar{\\alpha}_t}\\;\\varepsilon \\qquad \\varepsilon \\sim \\mathcal{N}(0, I)');
-K('th-sa','\\sqrt{\\bar\\alpha_t}',false);
-K('th-sn','\\sqrt{1-\\bar\\alpha_t}',false);
-K('eq-sched','\\beta_t = 0.001 + 0.099 \\cdot \\frac{t-1}{T-1} \\qquad \\alpha_t = 1 - \\beta_t \\qquad \\bar{\\alpha}_t = \\prod_{i=1}^t \\alpha_i');
-K('eq-rgoal','x_{t-1} \\sim \\mathcal{N}\\!\\big(\\mu(x_t, t),\\; \\beta_t\\, I\\big)');
-K('eq-d1','x_t = \\sqrt{\\bar{\\alpha}_t}\\, x_0 + \\sqrt{1 - \\bar{\\alpha}_t}\\;\\varepsilon');
-K('eq-d2','x_0 = \\frac{1}{\\sqrt{\\bar{\\alpha}_t}}\\Big(x_t - \\sqrt{1-\\bar{\\alpha}_t}\\;\\varepsilon\\Big)');
-K('eq-mu','\\mu(x_t, t) = \\frac{1}{\\sqrt{\\alpha_t}}\\left(x_t - \\frac{1 - \\alpha_t}{\\sqrt{1 - \\bar{\\alpha}_t}}\\;\\varepsilon\\right)');
-K('eq-net','\\hat{\\varepsilon} = \\varepsilon_\\theta(x_t,\\, t)');
-K('eq-gen','x_{t-1} = \\frac{1}{\\sqrt{\\alpha_t}}\\left(x_t - \\frac{1-\\alpha_t}{\\sqrt{1-\\bar{\\alpha}_t}}\\;\\varepsilon_\\theta(x_t, t)\\right) + \\sqrt{\\beta_t}\\; z');
-K('eq-c0','\\hat{\\varepsilon} = \\varepsilon_\\theta(x_t, t)',false);
-K('eq-c1','c = \\dfrac{\\beta_t}{\\sqrt{1 - \\bar{\\alpha}_t}}',false);
-K('eq-c2','r = x_t - c \\cdot \\hat{\\varepsilon}',false);
-K('eq-c3','m = r \\,/\\, \\sqrt{\\alpha_t}',false);
-K('eq-c4','x_{t-1} = m + \\sqrt{\\beta_t}\\; z',false);
-K('eq-loss','\\min_\\theta\\; \\mathbb{E}_{x_0,\\, t,\\, \\varepsilon}\\Big[\\big\\| \\varepsilon - \\varepsilon_\\theta(x_t, t) \\big\\|^2\\Big]');
-K('eq-score','\\varepsilon \\propto -\\nabla_{x_t} \\log p(x_t)');
-K('al1-1','x_0 \\sim p(x_0)',false);
-K('al1-2','t \\sim \\mathcal{U}(\\{1,\\dots,T\\})',false);
-K('al1-3','\\varepsilon \\sim \\mathcal{N}(0, I)',false);
-K('al1-5','\\|\\varepsilon - \\varepsilon_\\theta(x_t, t)\\|^2',false);
-K('al2-1','x_T \\sim \\mathcal{N}(0, I)',false);
-K('al2-2','t \\in \\{T, \\dots, 1\\}',false);
-K('al2-3a','z \\sim \\mathcal{N}(0, I)',false);
-K('al2-4','x_{t-1} = \\frac{1}{\\sqrt{\\alpha_t}}\\!\\left(x_t - \\frac{1-\\alpha_t}{\\sqrt{1-\\bar{\\alpha}_t}}\\,\\varepsilon_\\theta(x_t,t)\\right) + \\sqrt{\\beta_t}\\, z',false);
-
 function randn(){var u=0;while(!u)u=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*Math.random())}
 function f(v){return v.toFixed(3)}function f2(v){return v.toFixed(2)}
 var ND=200,T=50,data=[],dth=[];
@@ -550,11 +431,11 @@ function txf(v,cx,sc){return cx+v*sc}function tyf(v,cy,sc){return cy-v*sc}
 
 (function(){var c=getCtx('cvDataset'),W=c.W,H=c.H,ctx=c.ctx,CX=W/2,CY=H/2,SC=W/7;for(var i=0;i<ND;i++){ctx.beginPath();ctx.arc(txf(data[i][0],CX,SC),tyf(data[i][1],CY,SC),6,0,6.3);ctx.fillStyle=dotColor(dth[i],.85);ctx.fill()}})();
 
-(function(){var c=getCtx('cvNoise'),W=c.W,H=c.H,ctx=c.ctx,CX=W/2,CY=H/2,SC=W/7,sl=document.getElementById('slNoise'),out=document.getElementById('outNoise'),outK=document.getElementById('outNoiseKatex');
+(function(){var c=getCtx('cvNoise'),W=c.W,H=c.H,ctx=c.ctx,CX=W/2,CY=H/2,SC=W/7,sl=document.getElementById('slNoise'),out=document.getElementById('outNoise'),outD=document.getElementById('outNoiseDetail');
 function draw(){var t=+sl.value,sa=Math.sqrt(ab[t]),sn=Math.sqrt(1-ab[t]);ctx.clearRect(0,0,W,H);
 for(var i=0;i<ND;i++){ctx.beginPath();ctx.arc(txf(data[i][0],CX,SC),tyf(data[i][1],CY,SC),4,0,6.3);ctx.fillStyle=muted+'.15)';ctx.fill()}
 for(i=0;i<ND;i++){var nx=sa*data[i][0]+sn*noiseVec[i][0],ny=sa*data[i][1]+sn*noiseVec[i][1];ctx.beginPath();ctx.arc(txf(nx,CX,SC),tyf(ny,CY,SC),5,0,6.3);ctx.fillStyle=dotColor(dth[i],.8);ctx.fill()}
-out.textContent='t = '+t;try{katex.render('x_t = '+f2(sa)+'\\, x_0 + '+f2(sn)+'\\;\\varepsilon',outK,{displayMode:false,throwOnError:false})}catch(e){outK.textContent='√ᾱ='+f2(sa)+' √(1-ᾱ)='+f2(sn)}}
+out.textContent='t = '+t;outD.textContent='xₜ = '+f2(sa)+' · x₀ + '+f2(sn)+' · ε'}
 sl.addEventListener('input',draw);draw()})();
 
 (function(){var c=getCtx('cvSchedule'),W=c.W,H=c.H,ctx=c.ctx,PAD=80,PB=60,PT=40,gw=W-2*PAD,gh=H-PT-PB;
@@ -605,28 +486,28 @@ function upCalc(s){var o=document.getElementById('spCalc'),h='',xt=s.xt;
 if(!s.mu){h='<p style="margin:0;font-weight:500">Etat initial : bruit pur</p><table class="calc-table"><tr><td>x_T</td><td>('+f(xt[0])+', '+f(xt[1])+')</td><td></td></tr></table>'}
 else{h='<table class="calc-table">';
 h+='<tr><td class="calc-section" colspan="3">Pas t = '+s.t+'</td></tr>';
-h+='<tr><td>x_t</td><td>('+f(xt[0])+', '+f(xt[1])+')</td><td></td></tr>';
-h+='<tr><td>β_t</td><td>'+f(s.beta)+'</td><td></td></tr>';
-h+='<tr><td>α_t</td><td>'+f(s.al)+'</td><td></td></tr>';
-h+='<tr><td>ᾱ_t</td><td>'+f(s.abar)+'</td><td></td></tr>';
-h+='<tr><td>√ᾱ_t</td><td>'+f(s.sa)+'</td><td>signal</td></tr>';
-h+='<tr><td>√(1−ᾱ_t)</td><td>'+f(s.sn)+'</td><td>bruit</td></tr>';
+h+='<tr><td>xₜ</td><td>('+f(xt[0])+', '+f(xt[1])+')</td><td></td></tr>';
+h+='<tr><td>βₜ</td><td>'+f(s.beta)+'</td><td></td></tr>';
+h+='<tr><td>αₜ</td><td>'+f(s.al)+'</td><td></td></tr>';
+h+='<tr><td>ᾰ̅ₜ</td><td>'+f(s.abar)+'</td><td></td></tr>';
+h+='<tr><td>√ᾰ̅ₜ</td><td>'+f(s.sa)+'</td><td>signal</td></tr>';
+h+='<tr><td>√(1−ᾰ̅ₜ)</td><td>'+f(s.sn)+'</td><td>bruit</td></tr>';
 h+='<tr><td class="calc-section" colspan="3">Prediction</td></tr>';
 h+='<tr><td>x̂₀</td><td>('+f(s.mu[0])+', '+f(s.mu[1])+')</td><td>pt vert</td></tr>';
 h+='<tr><td>ε̂</td><td>('+f(s.eh[0])+', '+f(s.eh[1])+')</td><td></td></tr>';
 h+='<tr><td class="calc-section" colspan="3">1. Coefficient</td></tr>';
-h+='<tr><td>c = β/√(1−ᾱ)</td><td>'+f(s.c)+'</td><td></td></tr>';
+h+='<tr><td>c = β/√(1−ᾰ̅)</td><td>'+f(s.c)+'</td><td></td></tr>';
 h+='<tr><td class="calc-section" colspan="3">2. Retrait</td></tr>';
-h+='<tr><td>r = x_t − c·ε̂</td><td>('+f(s.r[0])+', '+f(s.r[1])+')</td><td></td></tr>';
+h+='<tr><td>r = xₜ − c·ε̂</td><td>('+f(s.r[0])+', '+f(s.r[1])+')</td><td></td></tr>';
 h+='<tr><td class="calc-section" colspan="3">3. Renormalisation</td></tr>';
-h+='<tr><td>m = r / √α_t</td><td>('+f(s.m[0])+', '+f(s.m[1])+')</td><td></td></tr>';
+h+='<tr><td>m = r / √αₜ</td><td>('+f(s.m[0])+', '+f(s.m[1])+')</td><td></td></tr>';
 h+='<tr><td class="calc-section" colspan="3">4. Bruit frais</td></tr>';
-h+='<tr><td>σ = √β_t</td><td>'+f(s.sig)+'</td><td>'+(s.t<=1?'0 dernier pas':'')+'</td></tr>';
+h+='<tr><td>σ = √βₜ</td><td>'+f(s.sig)+'</td><td>'+(s.t<=1?'0 dernier pas':'')+'</td></tr>';
 h+='<tr><td>z</td><td>('+f(s.z[0])+', '+f(s.z[1])+')</td><td></td></tr>';
 h+='<tr><td>σ·z</td><td>('+f(s.sig*s.z[0])+', '+f(s.sig*s.z[1])+')</td><td></td></tr>';
 var nx=steps[step+1]?steps[step+1].xt:s.m;
 h+='<tr><td class="calc-section" colspan="3">Resultat</td></tr>';
-h+='<tr><td style="font-weight:500">x_{t−1}</td><td style="font-weight:500">('+f(nx[0])+', '+f(nx[1])+')</td><td></td></tr>';
+h+='<tr><td style="font-weight:500">xₜ₋₁</td><td style="font-weight:500">('+f(nx[0])+', '+f(nx[1])+')</td><td></td></tr>';
 h+='</table>'}o.innerHTML=h}
 function stop(){if(timer){clearInterval(timer);timer=null;document.getElementById('spPlay').textContent='Lecture'}}
 document.getElementById('spStep').onclick=function(){stop();if(step<T){step++;draw()}};
